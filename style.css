@@ -1,0 +1,60 @@
+/* ======================== */
+/* 1. Reset y Layout General */
+/* ======================== */
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden; 
+    background-color: #000;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #fff;
+}
+
+/* El lienzo de Three.js (canvas) */
+canvas {
+    display: block;
+    opacity: 0; /* Inicialmente oculto por el JS */
+    transition: opacity 2s ease-in;
+}
+
+/* --- ESTILOS DE LA INTRODUCCIÓN DE CRÉDITOS --- */
+#intro-credits {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 80%;
+    max-width: 800px;
+    transform: translate(-50%, -50%);
+    z-index: 20; /* Siempre encima del canvas */
+    text-align: center;
+    font-size: 1.8vw;
+    font-weight: 300;
+    line-height: 1.5;
+    color: #FFC0CB; 
+    text-shadow: 0 0 10px rgba(255, 192, 203, 0.6);
+    opacity: 1;
+    transition: opacity 2s ease-out;
+}
+#intro-credits p {
+    margin: 0;
+}
+#intro-credits .word {
+    opacity: 0; 
+    transition: opacity 1.5s ease-in; 
+    display: block; 
+    margin-bottom: 25px; 
+}
+/* ------------------------------------------------ */
+
+/* Reproductor de música */
+#music-player-container {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.5); 
+    border-radius: 10px;
+}
