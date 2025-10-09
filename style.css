@@ -45,7 +45,35 @@ canvas {
     display: block; 
     margin-bottom: 25px; 
 }
-/* ------------------------------------------------ */
+
+/* --- ESTILOS PARA LA FRASE FINAL 2D (PARTE SUPERIOR y NARANJA) --- */
+
+#frase-final-2d {
+    /* Posicionamiento y capa */
+    position: fixed; 
+    top: 10%; /* Posiciona la frase cerca del borde superior */
+    left: 50%;
+    transform: translateX(-50%); /* Centra horizontalmente */
+    z-index: 1000; /* Superpuesto al canvas */
+
+    /* Apariencia y transición */
+    opacity: 0; /* Inicialmente oculta */
+    transition: opacity 2s ease-in-out; 
+    
+    /* 🌟 CAMBIO CLAVE: Color naranja (0xFF4500) */
+    color: #FF4500; 
+    
+    font-size: 2vw; 
+    font-weight: 700;
+    /* Fuerza que el texto permanezca en una sola línea */
+    white-space: nowrap; 
+    /* Ajuste de brillo para el nuevo color */
+    text-shadow: 0 0 15px rgba(255, 69, 0, 0.8), 0 0 5px rgba(255, 69, 0, 0.5); 
+    text-align: center;
+    padding: 10px;
+}
+
+/* ----------------------------------------------- */
 
 /* Reproductor de música */
 #music-player-container {
