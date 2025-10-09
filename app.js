@@ -135,6 +135,7 @@ function onWindowResize() {
 
 // ===============================================
 // FUNCIONES DE CREACIÓN DE CUERPOS Y ESTRELLAS
+// (Se mantienen sin cambios)
 // ===============================================
 
 function createSunParticles(x, y, z, radius, color1, color2) {
@@ -314,12 +315,14 @@ function addSimpleText(text, x, y, z, color, fontSize = 0.8) {
 
 
 // ===============================================
-// LÓGICA DE LA SECUENCIA DE CRÉDITOS (MANTENIDA)
+// LÓGICA DE LA SECUENCIA DE CRÉDITOS (MODIFICADA)
 // ===============================================
 
 document.addEventListener('DOMContentLoaded', () => {
     const words = document.querySelectorAll('#intro-credits .word');
     const introContainer = document.getElementById('intro-credits');
+    // 🌟 NUEVA REFERENCIA: Obtiene el elemento de la frase 2D
+    const finalFrase2D = document.getElementById('frase-final-2d'); 
     
     const blockDisplayTime = 3500; 
 
@@ -331,14 +334,25 @@ document.addEventListener('DOMContentLoaded', () => {
             index++;
             setTimeout(showNextWord, blockDisplayTime);
         } else {
+            // FASE 1: Se ocultan los créditos
             introContainer.style.opacity = 0;
 
+            // Retraso de 2 segundos para que el fade-out de los créditos se complete
             setTimeout(() => {
                 introContainer.style.display = 'none';
                 
                 initThreeJS();
                 const canvas = renderer.domElement;
                 canvas.style.opacity = 1; 
+
+                // 🌟 FASE 2: MOSTRAR LA FRASE 2D DESPUÉS DE LA GALAXIA 🌟
+                // Retraso de 3 segundos para que la galaxia 'aparezca' y se asiente.
+                setTimeout(() => {
+                    if (finalFrase2D) {
+                        finalFrase2D.style.opacity = 1; // La hace visible usando la transición CSS
+                    }
+                }, 3000); // 🚀 AJUSTA este tiempo (en milisegundos) si quieres que aparezca antes o después.
+                
             }, 2000); 
         }
     }
