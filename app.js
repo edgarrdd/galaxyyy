@@ -318,9 +318,7 @@ function addSimpleText(text, x, y, z, color, fontSize = 0.8) {
 // LÓGICA DE LA SECUENCIA DE CRÉDITOS (MODIFICADA)
 // ===============================================
 
-document.addEventListener('DOMContentLoaded', () => {
-    const words = document.querySelectorAll('#intro-credits .word');
-    const introContainer = document.getElementById('intro-credits');
+
     // 🌟 NUEVA REFERENCIA: Obtiene el elemento de la frase 2D
     const finalFrase2D = document.getElementById('frase-final-2d'); 
     
@@ -328,22 +326,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let index = 0;
     
-    function showNextWord() {
-        if (index < words.length) {
-            words[index].style.opacity = 1;
-            index++;
-            setTimeout(showNextWord, blockDisplayTime);
-        } else {
-            // FASE 1: Se ocultan los créditos
-            introContainer.style.opacity = 0;
-
-            // Retraso de 2 segundos para que el fade-out de los créditos se complete
-            setTimeout(() => {
-                introContainer.style.display = 'none';
-                
-                initThreeJS();
-                const canvas = renderer.domElement;
-                canvas.style.opacity = 1; 
+    
+         
 
                 // 🌟 FASE 2: MOSTRAR LA FRASE 2D DESPUÉS DE LA GALAXIA 🌟
                 // Retraso de 3 segundos para que la galaxia 'aparezca' y se asiente.
