@@ -99,6 +99,8 @@ function initThreeJS() {
     // Event listeners para interacción
     window.addEventListener('click', onMouseClick, false);
     window.addEventListener('mousemove', onMouseMove, false);
+    window.addEventListener('touchstart', onTouchStart, false);
+    window.addEventListener('touchmove', onTouchMove, false);
     window.addEventListener('resize', onWindowResize, false);
 
     animate();
@@ -279,6 +281,47 @@ function onMouseMove(event) {
         document.body.style.cursor = 'pointer';
     } else {
         document.body.style.cursor = 'auto';
+    }
+}
+
+function onTouchStart(event) {
+    if (event.touches.length > 0) {
+        const touch = event.touches[0];
+        mouse.x = (touch.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(touch.clientY / window.innerHeight) * 2 + 1;
+        
+        raycaster.setFromCamera(mouse, camera);
+        const meteoriteMeshes = meteorites.map(m => m.mesh);
+        const intersects = raycaster.intersectObjects(meteoriteMeshes);
+        
+        if (intersects.length > 0) {
+            const clickedMeteorite = intersects[0].object;
+            const phraseIndex = clickedMeteorite.userData.phraseIndex;
+            
+            const targetPosition = clickedMeteorite.position.clone();
+            animateCameraTo(targetPosition, clickedMeteorite);
+            showPhrase(romanticPhrases[phraseIndex % romanticPhrases.length]);
+        }
+    }
+}
+
+function onTouchMove(event) {
+    if (event.touches.length > 0) {
+        const touch = event.touches[0];
+        mouse.x = (touch.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(touch.clientY / window.innerHeight) * 2 + 1;
+        
+        raycaster.setFromCamera(mouse, camera);
+        const meteoriteMeshes = meteorites.map(m => m.mesh);
+        const intersects = raycaster.intersectObjects(meteoriteMeshes);
+        
+        meteorites.forEach(m => {
+            m.mesh.scale.set(1, 1, 1);
+        });
+        
+        if (intersects.length > 0) {
+            intersects[0].object.scale.set(1.5, 1.5, 1.5);
+        }
     }
 }
 
