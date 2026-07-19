@@ -16,6 +16,7 @@ canvas {
     display: block;
     opacity: 0; /* Inicialmente oculto por el JS */
     transition: opacity 2s ease-in;
+    touch-action: none; /* Permite capturar eventos táctiles */
 }
 
 /* --- ESTILOS DE LA INTRODUCCIÓN DE CRÉDITOS --- */
