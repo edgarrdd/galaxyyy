@@ -1,14 +1,15 @@
-// ===============================================
-// ARCHIVO: app.js (VERSIÓN INTERACTIVA CON FLORES)
-// LÓGICA DE SECUENCIA Y ANIMACIÓN 3D (PC Y MÓVIL)
-// ===============================================
+// ============================================================================
+// ARCHIVO COMPLETO: app.js
+// CARACTERÍSTICAS: Corazón Wireframe Tamaño Grande, Espaciado del Espiral Aumentado,
+//                  Giro Sincronizado Galaxia/Flores y Modals Interactivos.
+// ============================================================================
 
 let scene, camera, renderer, controls;
 let celestialBodies = []; 
 let spiralGroup;
 let raycaster;
 let mouse = new THREE.Vector2();
-let meteorites = []; // Mantenemos el nombre del array interno para compatibilidad
+let meteorites = []; 
 let clock = new THREE.Clock();
 let previousCameraPosition = new THREE.Vector3(); 
 let previousCameraTarget = new THREE.Vector3(); 
@@ -16,74 +17,73 @@ let introMode = true;
 let universeStarted = false;
 let galaxyAppearing = false;
 let galaxyProgress = 0;
+let heartMesh; 
 
 // Frases románticas para las flores
 const romanticPhrases = [
-    "Cada estrella en este espiral representa un momento contigo",
-    "En la vastedad del universo, tú eres mi punto de referencia",
-    "Tu luz brilla más que mil soles",
-    "Girar a tu alrededor es mi destino",
-    "Eres el centro de mi universo",
-    "Entre millones de estrellas, elegí la más bella",
-    "Mi corazón orbita alrededor de ti",
-    "Eres mi constelación favorita",
-    "En este cosmos, eres mi galaxia",
-    "Tu amor es infinito como el espacio",
-    "Cada brazo del espiral te lleva a mí",
-    "Eres la razón de todas mis órbitas",
-    "En la eternidad, encontré tu nombre",
-    "Giro junto a ti en este universo mágico",
-    "Tu belleza eclipsa a todas las estrellas",
-    "Esta flor florece solo para ti en el vacío",
-    "En la noche oscura, tu luz me guía",
-    "Contigo, el infinito tiene fin",
-    "Cada giro es un paso hacia ti",
-    "Eres mi estrella polar, mi amor"
+    "Si el universo es infinito 🌠, yo quiero perderme contigo en cada galaxia 🪐",
+    "Eres mi estrella favorita ⭐... y eso que hay millones ✨",
+    "Contigo hasta Marte se me hace cerca 🔴, porque a tu lado todo es hogar 🏠💕",
+    "Quisiera ser gravedad 🌍 para no soltarte nunca 🤝",
+    "¿Crees en amor a primera órbita? 🛰️ Porque desde que te vi quedé girando alrededor tuyo 🔄",
+    "Oye astronauta 👨‍🚀, ¿me das permiso para invadir tu espacio personal? 😉",
+    "Si me das tu mano ✋, te prometo que hacemos nuestro propio sistema solar ☀️🪐",
+    "El universo tardó 13.8 mil millones de años ⏳ en hacer algo tan perfecto como tú 💖",
+    "En toda esta inmensidad 🌌, de todos los planetas te elegí a ti 🌍➡️❤️",
+    "Me encantas en versión supernova 💥: cuando explotas de risa y me iluminas todo 😂✨",
+    "Si somos polvo de estrellas 🌟, entonces ya estamos hechos del mismo material 🫶",
+    "Tú eres mi constelación favorita ✨♍",
+    "¿Vemos estrellas 🌙 o las hacemos nosotros? 😉🔥",
+    "¿Vemos estrellas 🌙 o las hacemos nosotros? 😉🔥",
+    "Prométeme que seremos eternos como las galaxias 🌀💞",
+    "Esta flor florece solo para ti en el vacío"
+ 
 ]; 
 
 // ===============================================
 // INICIALIZACIÓN DEL ENTORNO
 // ===============================================
 function initThreeJS() {
-    // 1. ESCENA y FONDO
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x000000); 
+    scene.background = new THREE.Color(0x05010a); 
     
-    // 2. CÁMARA
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000); 
-    camera.position.set(60, 50, 60); 
+    const initialCamZ = window.innerWidth < 600 ? 85 : 70;
+    camera.position.set(initialCamZ, initialCamZ * 0.8, initialCamZ); 
     
-    // 3. RENDERIZADOR
     renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     document.body.appendChild(renderer.domElement); 
     
-    // 4. CONTROLES
     controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
     controls.minDistance = 10; 
-    controls.maxDistance = 150; 
+    controls.maxDistance = 220; 
     controls.target.copy(new THREE.Vector3(0,0,0));
 
-    // 5. LUCES
-    const ambientLight = new THREE.AmbientLight(0x404040, 2); 
+    // Iluminación neón ambiental y direccional
+    const ambientLight = new THREE.AmbientLight(0x220011, 1.2); 
     scene.add(ambientLight);
-    const sunLight = new THREE.DirectionalLight(0xffffff, 3); 
-    sunLight.position.set(10, 5, 15);
-    scene.add(sunLight);
 
-    // Fondo de estrellas estables desde el inicio
+    const cornerLight1 = new THREE.DirectionalLight(0xff0066, 2.0); 
+    cornerLight1.position.set(-30, 40, 20);
+    scene.add(cornerLight1);
+
+    const cornerLight2 = new THREE.DirectionalLight(0xff00aa, 1.5); 
+    cornerLight2.position.set(30, -40, -20);
+    scene.add(cornerLight2);
+
+    // Fondo de estrellas estáticas
     createStarField(500);
 
-    // SOL 
-    const sunParticles = createSunParticles(0, 0, 0, 5, 0xffaa44, 0xff4500);
-    celestialBodies.push(sunParticles);
+    // 💖 CORAZÓN MÁS GRANDE
+    heartMesh = createPinkHeart(0, 0, 0, 1.0); 
+    celestialBodies.push(heartMesh);
 
     raycaster = new THREE.Raycaster();
     
-    // Listeners unificados (PC y Móviles)
     window.addEventListener('click', onMouseClick, false);
     window.addEventListener('mousemove', onMouseMove, false);
     window.addEventListener('touchstart', onTouchStart, { passive: false });
@@ -92,7 +92,6 @@ function initThreeJS() {
     animate();
 }
 
-// Detonador al interactuar con el Sol
 function startUniverse() {
     if (universeStarted) return;
     universeStarted = true;
@@ -101,17 +100,100 @@ function startUniverse() {
     const introOverlay = document.getElementById('intro-overlay');
     if (introOverlay) introOverlay.style.display = 'none';
 
-    // Generar galaxia en el núcleo
-    spiralGroup = createSpiralShuriken(55, 40000); 
+    const galaxyRadius = window.innerWidth < 600 ? 60 : 75;
+    spiralGroup = createSpiralShuriken(galaxyRadius, 35000); 
     scene.add(spiralGroup);
 
     galaxyAppearing = true;
     galaxyProgress = 0;
 }
 
-// ===============================================
-// CREACIÓN DE LA GALAXIA ESPIRAL
-// ===============================================
+// ============================================================================
+// CREACIÓN DEL CORAZÓN (TAMAÑO MÁS GRANDE)
+// ============================================================================
+function createPinkHeart(x, y, z, scaleFactor) {
+    const group = new THREE.Group();
+
+    // Forma con proporciones armónicas
+    const heartShape = new THREE.Shape();
+    heartShape.moveTo(0, 0);
+    heartShape.bezierCurveTo(0, 0.4, -0.6, 0.9, -1.3, 0.9);
+    heartShape.bezierCurveTo(-2.3, 0.9, -2.3, -0.4, -2.3, -0.4);
+    heartShape.bezierCurveTo(-2.3, -1.5, -1.3, -2.5, 0, -3.3);
+    heartShape.bezierCurveTo(1.3, -2.5, 2.3, -1.5, 2.3, -0.4);
+    heartShape.bezierCurveTo(2.3, -0.4, 2.3, 0.9, 1.3, 0.9);
+    heartShape.bezierCurveTo(0.6, 0.9, 0, 0.4, 0, 0);
+
+    const extrudeSettings = {
+        depth: 1.2,
+        bevelEnabled: true,
+        bevelSegments: 6,
+        steps: 4,
+        bevelSize: 0.5,
+        bevelThickness: 0.5
+    };
+
+    const geometry = new THREE.ExtrudeGeometry(heartShape, extrudeSettings);
+    geometry.center();
+
+    // Aumentado el tamaño global del corazón
+    const finalScale = scaleFactor * 2.6;
+    group.scale.set(finalScale, finalScale, finalScale);
+
+    // Malla Wireframe
+    const wireframeGeometry = new THREE.WireframeGeometry(geometry);
+    const lineMaterial = new THREE.LineBasicMaterial({
+        color: 0xff0055,
+        transparent: true,
+        opacity: 0.85,
+        blending: THREE.AdditiveBlending
+    });
+    const wireframe = new THREE.LineSegments(wireframeGeometry, lineMaterial);
+    group.add(wireframe);
+
+    // Nodos brillantes
+    const isMobile = window.innerWidth < 600;
+    const pointsMaterial = new THREE.PointsMaterial({
+        color: 0xff33aa,
+        size: isMobile ? 0.35 : 0.25,
+        transparent: true,
+        opacity: 0.9,
+        blending: THREE.AdditiveBlending
+    });
+    const points = new THREE.Points(geometry, pointsMaterial);
+    group.add(points);
+
+    // Polvo estelar alrededor
+    const particleCount = 350;
+    const particleGeo = new THREE.BufferGeometry();
+    const particlePos = new Float32Array(particleCount * 3);
+
+    for (let i = 0; i < particleCount * 3; i += 3) {
+        particlePos[i] = (Math.random() - 0.5) * 12;
+        particlePos[i + 1] = (Math.random() - 0.5) * 12;
+        particlePos[i + 2] = (Math.random() - 0.5) * 12;
+    }
+
+    particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePos, 3));
+    const sparkMaterial = new THREE.PointsMaterial({
+        color: 0xff66cc,
+        size: 0.18,
+        transparent: true,
+        opacity: 0.8,
+        blending: THREE.AdditiveBlending
+    });
+    const sparks = new THREE.Points(particleGeo, sparkMaterial);
+    group.add(sparks);
+
+    group.position.set(x, y, z);
+    scene.add(group);
+
+    return group;
+}
+
+// ============================================================================
+// CREACIÓN DE LA GALAXIA ESPIRAL (AJUSTADA AL CORAZÓN GRANDE)
+// ============================================================================
 function createSpiralShuriken(radius, starCount) {
     const group = new THREE.Group();
     const positions = new Float32Array(starCount * 3);
@@ -119,11 +201,12 @@ function createSpiralShuriken(radius, starCount) {
     const sizes = new Float32Array(starCount);
     const finalPositions = new Float32Array(starCount * 3); 
     
-    const centerColor = new THREE.Color(0xdd99aa); 
-    const outerColor = new THREE.Color(0xff6699); 
+    const centerColor = new THREE.Color(0xff66bb); 
+    const outerColor = new THREE.Color(0xff1493); 
     
     const armCount = 4; 
     const startsPerArm = Math.floor(starCount / armCount);
+    const isMobile = window.innerWidth < 600;
 
     for (let arm = 0; arm < armCount; arm++) {
         const baseAngle = (arm / armCount) * Math.PI * 2;
@@ -133,7 +216,8 @@ function createSpiralShuriken(radius, starCount) {
             if (i >= starCount) break;
             
             const t = j / startsPerArm;
-            const innerMin = 18; 
+            // 💡 Aumentado a 35 para que el espiral comience fuera del área del corazón grande
+            const innerMin = 35; 
             const r = innerMin + Math.pow(t, 0.75) * (radius - innerMin);
             
             const armCurve = t * Math.PI * 1.2; 
@@ -144,7 +228,7 @@ function createSpiralShuriken(radius, starCount) {
             const finalAngle = angle + noise * 0.2;
             
             const x = Math.cos(finalAngle) * finalRadius;
-            const y = (Math.random() - 0.5) * (radius * 0.06);
+            const y = (Math.random() - 0.5) * (radius * 0.08);
             const z = Math.sin(finalAngle) * finalRadius;
 
             finalPositions[i * 3] = x;
@@ -155,8 +239,9 @@ function createSpiralShuriken(radius, starCount) {
             positions[i * 3 + 1] = 0;
             positions[i * 3 + 2] = 0;
 
-            const sizeIntensity = Math.pow(1 - t, 1.3);
-            sizes[i] = 0.2 + sizeIntensity * 0.3; 
+            const baseSize = isMobile ? 0.6 : 0.35;
+            const sizeIntensity = Math.pow(1 - t, 1.2);
+            sizes[i] = baseSize + sizeIntensity * (isMobile ? 0.6 : 0.4); 
 
             const mix = Math.pow(t, 0.6);
             const color = centerColor.clone().lerp(outerColor, mix);
@@ -186,9 +271,9 @@ function createSpiralShuriken(radius, starCount) {
             void main() {
                 vColor = color;
                 float distFromCenter = length(position);
-                float growthFactor = smoothstep(0.0, 15.0, distFromCenter);
-                gl_PointSize = size * growthFactor * (1.0 + (1.0 - uProgress) * 3.0);
-                vAlpha = smoothstep(0.0, 10.0, distFromCenter);
+                float growthFactor = smoothstep(0.0, 10.0, distFromCenter);
+                gl_PointSize = size * growthFactor * (1.0 + (1.0 - uProgress) * 2.5);
+                vAlpha = smoothstep(0.0, 12.0, distFromCenter);
                 gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
             }
         `,
@@ -215,15 +300,16 @@ function createSpiralShuriken(radius, starCount) {
     return group;
 }
 
-// ===============================================
-// 🌸 CREACIÓN DE FLORES EN ESPACIO 3D (SPRITES)
-// ===============================================
+// ============================================================================
+// 🌸 FLORES INTEGRADAS
+// ============================================================================
 function createMeteoritos() {
-    meteorites.forEach(m => scene.remove(m.mesh));
+    meteorites.forEach(m => {
+        if (m.mesh.parent) m.mesh.parent.remove(m.mesh);
+    });
     meteorites = [];
 
     const textureLoader = new THREE.TextureLoader();
-    // Carga tu archivo local de flor.png
     const flowerTexture = textureLoader.load('flor.png'); 
 
     const flowerMaterial = new THREE.SpriteMaterial({
@@ -235,14 +321,16 @@ function createMeteoritos() {
 
     const armCount = 4;
     const itemsPerArm = 4; 
-    const radius = 55;
+    const radius = window.innerWidth < 600 ? 60 : 75;
+    const isMobile = window.innerWidth < 600;
     
     for (let arm = 0; arm < armCount; arm++) {
         const baseAngle = (arm / armCount) * Math.PI * 2;
         
         for (let m = 0; m < itemsPerArm; m++) {
             const t = (m + 1) / (itemsPerArm + 1);
-            const innerMin = 18;
+            // 💡 Aumentado a 38 para despejar totalmente la vista del corazón
+            const innerMin = 38;
             const r = innerMin + Math.pow(t, 0.75) * (radius - innerMin);
             
             const armCurve = t * Math.PI * 1.2;
@@ -252,31 +340,39 @@ function createMeteoritos() {
             const y = (Math.random() - 0.5) * 2;
             const z = Math.sin(angle) * r;
             
-            // Creamos Sprites que miran siempre a la cámara de frente
             const flowerSprite = new THREE.Sprite(flowerMaterial.clone());
             flowerSprite.position.set(x, y, z);
             
-            // Tamaño base inicial de la flor (2.5 en X y Y)
-            flowerSprite.scale.set(2.5, 2.5, 1); 
+            const spriteScale = isMobile ? 3.8 : 3.0;
+            flowerSprite.scale.set(spriteScale, spriteScale, 1); 
             flowerSprite.userData.phraseIndex = meteorites.length;
             
-            scene.add(flowerSprite);
+            if (spiralGroup) {
+                spiralGroup.add(flowerSprite);
+            } else {
+                scene.add(flowerSprite);
+            }
+
             meteorites.push({
                 mesh: flowerSprite, 
-                position: new THREE.Vector3(x, y, z),
-                phraseIndex: meteorites.length
+                radius: r,               
+                angle: angle,             
+                phraseIndex: meteorites.length,
+                baseScale: spriteScale
             });
         }
     }
 }
 
-// Interacciones combinadas de clics/taps
+// ===============================================
+// INTERACCIONES Y EVENTOS
+// ===============================================
 function checkInteractions() {
     raycaster.setFromCamera(mouse, camera);
     
     if (!universeStarted && celestialBodies[0]) {
-        const sunHit = raycaster.intersectObject(celestialBodies[0]);
-        if (sunHit.length > 0) {
+        const heartHits = raycaster.intersectObjects(celestialBodies[0].children);
+        if (heartHits.length > 0) {
             startUniverse();
             return;
         }
@@ -290,8 +386,10 @@ function checkInteractions() {
             const clickedFlower = intersects[0].object;
             const phraseIndex = clickedFlower.userData.phraseIndex;
             
-            const targetPosition = clickedFlower.position.clone();
-            animateCameraTo(targetPosition, clickedFlower);
+            const worldPosition = new THREE.Vector3();
+            clickedFlower.getWorldPosition(worldPosition);
+
+            animateCameraTo(worldPosition, clickedFlower);
             showPhrase(romanticPhrases[phraseIndex % romanticPhrases.length]);
         }
     }
@@ -319,7 +417,7 @@ function onMouseMove(event) {
     raycaster.setFromCamera(mouse, camera);
 
     if (!universeStarted && celestialBodies[0]) {
-        const intersects = raycaster.intersectObject(celestialBodies[0]);
+        const intersects = raycaster.intersectObjects(celestialBodies[0].children);
         document.body.style.cursor = intersects.length > 0 ? 'pointer' : 'auto';
         return;
     }
@@ -328,12 +426,10 @@ function onMouseMove(event) {
         const flowerMeshes = meteorites.map(m => m.mesh);
         const intersects = raycaster.intersectObjects(flowerMeshes);
         
-        // Restablecer escala base de las flores
-        meteorites.forEach(m => m.mesh.scale.set(2.5, 2.5, 1));
+        meteorites.forEach(m => m.mesh.scale.set(m.baseScale, m.baseScale, 1));
         
         if (intersects.length > 0) {
-            // Animación de hover: agranda suavemente la flor apuntada en PC
-            intersects[0].object.scale.set(3.5, 3.5, 1);
+            intersects[0].object.scale.set(4.8, 4.8, 1);
             document.body.style.cursor = 'pointer';
         } else {
             document.body.style.cursor = 'auto';
@@ -380,31 +476,31 @@ function showPhrase(phrase) {
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.92);
-            border: 2px solid #ff6699;
-            border-radius: 12px;
+            background: rgba(15, 5, 20, 0.94);
+            border: 2px solid #ff0055;
+            border-radius: 14px;
             padding: 25px;
             width: 85%;
-            max-width: 450px;
+            max-width: 420px;
             box-sizing: border-box;
             text-align: center;
             z-index: 2000;
-            color: #ff6699;
-            font-size: 1.2em;
+            color: #ffb6c1;
+            font-size: 1.15em;
             font-family: sans-serif;
-            box-shadow: 0 0 25px rgba(255, 102, 153, 0.4);
+            box-shadow: 0 0 30px rgba(255, 0, 85, 0.4);
         `;
         document.body.appendChild(modal);
     }
     
     modal.innerHTML = `
-        <p style="margin: 0 0 20px 0; line-height: 1.5; font-weight: 500;">"${phrase}"</p>
+        <p style="margin: 0 0 20px 0; line-height: 1.5; font-weight: 500; color: #ffffff;">"${phrase}"</p>
         <button id="close-modal" style="
-            background: #ff6699;
-            color: black;
+            background: linear-gradient(45deg, #ff0055, #ff33aa);
+            color: white;
             border: none;
             padding: 12px 28px;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
             font-size: 0.95em;
@@ -444,14 +540,28 @@ function animateCameraBack() {
 }
 
 // ===============================================
-// BUCLE PRINCIPAL DE RENDERIZADO (ANIMATE)
+// BUCLE DE RENDERIZADO PRINCIPAL
 // ===============================================
 function animate() {
     requestAnimationFrame(animate);
     
-    // Rotación sutil de fondo
     if (scene.userData.backgroundStars) {
         scene.userData.backgroundStars.rotation.y += 0.0001;
+    }
+
+    // Rotación y latido del corazón central grande
+    if (heartMesh) {
+        heartMesh.rotation.y += 0.006;
+        heartMesh.rotation.x = Math.sin(Date.now() * 0.001) * 0.08;
+        
+        const pulse = 1 + Math.sin(Date.now() * 0.0025) * 0.04;
+        const currentScale = pulse * 2.6;
+        heartMesh.scale.set(currentScale, currentScale, currentScale);
+    }
+
+    // Rotación sincronizada de galaxia y flores
+    if (spiralGroup) {
+        spiralGroup.rotation.y += 0.0012;
     }
 
     if (galaxyAppearing && spiralGroup) {
@@ -480,18 +590,10 @@ function animate() {
         
         if (reachedDestination || galaxyProgress >= 1) {
             galaxyAppearing = false;
-            // Al terminar la expansión se siembran las flores PNG
             createMeteoritos();
             const finalFrase = document.getElementById("frase-final-2d");
             if (finalFrase) finalFrase.style.opacity = 1;
         }
-    }
-    
-    // Sol dinámico
-    const sun = celestialBodies[0];
-    if (sun) {
-        sun.rotation.y += 0.002;
-        sun.scale.setScalar(1 + Math.sin(Date.now() * 0.001) * 0.02); 
     }
     
     controls.update();
@@ -503,39 +605,6 @@ function onWindowResize() {
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-}
-
-// ===============================================
-// GENERADORES AUXILIARES
-// ===============================================
-function createSunParticles(x, y, z, radius, color1, color2) {
-    const particleCount = 4500; 
-    const positions = new Float32Array(particleCount * 3);
-    const colors = new Float32Array(particleCount * 3);
-    const c1 = new THREE.Color(color1); 
-    const c2 = new THREE.Color(color2); 
-    for (let i = 0; i < particleCount; i++) {
-        const r = radius * Math.cbrt(Math.random()) * (0.8 + Math.random() * 0.4); 
-        const theta = Math.random() * Math.PI * 2; 
-        const phi = Math.acos((Math.random() * 2) - 1);
-        positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
-        positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
-        positions[i * 3 + 2] = r * Math.cos(phi);
-        const mixedColor = c1.clone().lerp(c2, r / radius);
-        colors[i * 3] = mixedColor.r;
-        colors[i * 3 + 1] = mixedColor.g;
-        colors[i * 3 + 2] = mixedColor.b;
-    }
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-    const material = new THREE.PointsMaterial({
-        size: 0.25, vertexColors: true, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false 
-    });
-    const sunParticles = new THREE.Points(geometry, material);
-    sunParticles.position.set(x, y, z);
-    scene.add(sunParticles);
-    return sunParticles; 
 }
 
 function createStarField(radius) {
