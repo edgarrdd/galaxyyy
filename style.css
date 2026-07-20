@@ -47,7 +47,7 @@ canvas {
     margin-bottom: 25px; 
 }
 
-/* --- ESTILOS PARA LA FRASE FINAL 2D (PARTE SUPERIOR y NARANJA) --- */
+/* --- ESTILOS PARA LA FRASE FINAL 2D (PARTE SUPERIOR y ROSA NEÓN) --- */
 
 #frase-final-2d {
     /* Posicionamiento y capa */
@@ -61,15 +61,18 @@ canvas {
     opacity: 0; /* Inicialmente oculta */
     transition: opacity 2s ease-in-out; 
     
-    /* 🌟 CAMBIO CLAVE: Color naranja (0xFF4500) */
-    color: #FF4500; 
+    /* 💖 CAMBIO CLAVE: Color Rosa Neón (#FF33AA) sintonizado con el corazón */
+    color: #FF33AA; 
     
     font-size: 2vw; 
     font-weight: 700;
     /* Fuerza que el texto permanezca en una sola línea */
     white-space: nowrap; 
-    /* Ajuste de brillo para el nuevo color */
-    text-shadow: 0 0 15px rgba(255, 69, 0, 0.8), 0 0 5px rgba(255, 69, 0, 0.5); 
+    /* Brillo neón rosa multinivel */
+    text-shadow: 
+        0 0 10px #ff0055, 
+        0 0 20px #ff0055, 
+        0 0 30px #ff33aa; 
     text-align: center;
     padding: 10px;
 }
@@ -131,4 +134,3 @@ z-index:999;
 animation:pulse 2s infinite;
 
 }
-
