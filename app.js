@@ -1,7 +1,6 @@
 // ============================================================================
 // ARCHIVO COMPLETO: app.js
-// CARACTERÍSTICAS: Corazón Wireframe Tamaño Grande, Espaciado del Espiral Aumentado,
-//                  Giro Sincronizado Galaxia/Flores y Modals Interactivos.
+// CARACTERÍSTICAS: Corazón Grande, Espiral Ajustado y Colores Intensificados en Móviles
 // ============================================================================
 
 let scene, camera, renderer, controls;
@@ -21,23 +20,26 @@ let heartMesh;
 
 // Frases románticas para las flores
 const romanticPhrases = [
-    "Si el universo es infinito 🌠, yo quiero perderme contigo en cada galaxia 🪐",
-    "Eres mi estrella favorita ⭐... y eso que hay millones ✨",
-    "Contigo hasta Marte se me hace cerca 🔴, porque a tu lado todo es hogar 🏠💕",
-    "Quisiera ser gravedad 🌍 para no soltarte nunca 🤝",
-    "¿Crees en amor a primera órbita? 🛰️ Porque desde que te vi quedé girando alrededor tuyo 🔄",
-    "Oye astronauta 👨‍🚀, ¿me das permiso para invadir tu espacio personal? 😉",
-    "Si me das tu mano ✋, te prometo que hacemos nuestro propio sistema solar ☀️🪐",
-    "El universo tardó 13.8 mil millones de años ⏳ en hacer algo tan perfecto como tú 💖",
-    "En toda esta inmensidad 🌌, de todos los planetas te elegí a ti 🌍➡️❤️",
-    "Me encantas en versión supernova 💥: cuando explotas de risa y me iluminas todo 😂✨",
-    "Si somos polvo de estrellas 🌟, entonces ya estamos hechos del mismo material 🫶",
-    "Tú eres mi constelación favorita ✨♍",
-    "¿Vemos estrellas 🌙 o las hacemos nosotros? 😉🔥",
-    "¿Vemos estrellas 🌙 o las hacemos nosotros? 😉🔥",
-    "Prométeme que seremos eternos como las galaxias 🌀💞",
-    "Esta flor florece solo para ti en el vacío"
- 
+    "Cada estrella en este espiral representa un momento contigo",
+    "En la vastedad del universo, tú eres mi punto de referencia",
+    "Tu luz brilla más que mil soles",
+    "Girar a tu alrededor es mi destino",
+    "Eres el centro de mi universo",
+    "Entre millones de estrellas, elegí la más bella",
+    "Mi corazón orbita alrededor de ti",
+    "Eres mi constelación favorita",
+    "En este cosmos, eres mi galaxia",
+    "Tu amor es infinito como el espacio",
+    "Cada brazo del espiral te lleva a mí",
+    "Eres la razón de todas mis órbitas",
+    "En la eternidad, encontré tu nombre",
+    "Giro junto a ti en este universo mágico",
+    "Tu belleza eclipsa a todas las estrellas",
+    "Esta flor florece solo para ti en el vacío",
+    "En la noche oscura, tu luz me guía",
+    "Contigo, el infinito tiene fin",
+    "Cada giro es un paso hacia ti",
+    "Eres mi estrella polar, mi amor"
 ]; 
 
 // ===============================================
@@ -45,7 +47,7 @@ const romanticPhrases = [
 // ===============================================
 function initThreeJS() {
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x05010a); 
+    scene.background = new THREE.Color(0x030008); 
     
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000); 
     const initialCamZ = window.innerWidth < 600 ? 85 : 70;
@@ -64,21 +66,21 @@ function initThreeJS() {
     controls.target.copy(new THREE.Vector3(0,0,0));
 
     // Iluminación neón ambiental y direccional
-    const ambientLight = new THREE.AmbientLight(0x220011, 1.2); 
+    const ambientLight = new THREE.AmbientLight(0x33001b, 1.5); 
     scene.add(ambientLight);
 
-    const cornerLight1 = new THREE.DirectionalLight(0xff0066, 2.0); 
+    const cornerLight1 = new THREE.DirectionalLight(0xff0066, 2.5); 
     cornerLight1.position.set(-30, 40, 20);
     scene.add(cornerLight1);
 
-    const cornerLight2 = new THREE.DirectionalLight(0xff00aa, 1.5); 
+    const cornerLight2 = new THREE.DirectionalLight(0xff00aa, 2.0); 
     cornerLight2.position.set(30, -40, -20);
     scene.add(cornerLight2);
 
     // Fondo de estrellas estáticas
     createStarField(500);
 
-    // 💖 CORAZÓN MÁS GRANDE
+    // Corazón grande central
     heartMesh = createPinkHeart(0, 0, 0, 1.0); 
     celestialBodies.push(heartMesh);
 
@@ -109,12 +111,11 @@ function startUniverse() {
 }
 
 // ============================================================================
-// CREACIÓN DEL CORAZÓN (TAMAÑO MÁS GRANDE)
+// CREACIÓN DEL CORAZÓN (TAMAÑO GRANDE)
 // ============================================================================
 function createPinkHeart(x, y, z, scaleFactor) {
     const group = new THREE.Group();
 
-    // Forma con proporciones armónicas
     const heartShape = new THREE.Shape();
     heartShape.moveTo(0, 0);
     heartShape.bezierCurveTo(0, 0.4, -0.6, 0.9, -1.3, 0.9);
@@ -136,11 +137,9 @@ function createPinkHeart(x, y, z, scaleFactor) {
     const geometry = new THREE.ExtrudeGeometry(heartShape, extrudeSettings);
     geometry.center();
 
-    // Aumentado el tamaño global del corazón
     const finalScale = scaleFactor * 2.6;
     group.scale.set(finalScale, finalScale, finalScale);
 
-    // Malla Wireframe
     const wireframeGeometry = new THREE.WireframeGeometry(geometry);
     const lineMaterial = new THREE.LineBasicMaterial({
         color: 0xff0055,
@@ -151,7 +150,6 @@ function createPinkHeart(x, y, z, scaleFactor) {
     const wireframe = new THREE.LineSegments(wireframeGeometry, lineMaterial);
     group.add(wireframe);
 
-    // Nodos brillantes
     const isMobile = window.innerWidth < 600;
     const pointsMaterial = new THREE.PointsMaterial({
         color: 0xff33aa,
@@ -163,7 +161,6 @@ function createPinkHeart(x, y, z, scaleFactor) {
     const points = new THREE.Points(geometry, pointsMaterial);
     group.add(points);
 
-    // Polvo estelar alrededor
     const particleCount = 350;
     const particleGeo = new THREE.BufferGeometry();
     const particlePos = new Float32Array(particleCount * 3);
@@ -192,7 +189,7 @@ function createPinkHeart(x, y, z, scaleFactor) {
 }
 
 // ============================================================================
-// CREACIÓN DE LA GALAXIA ESPIRAL (AJUSTADA AL CORAZÓN GRANDE)
+// CREACIÓN DE LA GALAXIA ESPIRAL (COLOR E INTENSIDAD OPTIMIZADOS PARA MÓVIL)
 // ============================================================================
 function createSpiralShuriken(radius, starCount) {
     const group = new THREE.Group();
@@ -201,8 +198,9 @@ function createSpiralShuriken(radius, starCount) {
     const sizes = new Float32Array(starCount);
     const finalPositions = new Float32Array(starCount * 3); 
     
-    const centerColor = new THREE.Color(0xff66bb); 
-    const outerColor = new THREE.Color(0xff1493); 
+    // Colores con mayor saturación neón
+    const centerColor = new THREE.Color(0xff0077); 
+    const outerColor = new THREE.Color(0xff00cc); 
     
     const armCount = 4; 
     const startsPerArm = Math.floor(starCount / armCount);
@@ -216,7 +214,6 @@ function createSpiralShuriken(radius, starCount) {
             if (i >= starCount) break;
             
             const t = j / startsPerArm;
-            // 💡 Aumentado a 35 para que el espiral comience fuera del área del corazón grande
             const innerMin = 35; 
             const r = innerMin + Math.pow(t, 0.75) * (radius - innerMin);
             
@@ -239,9 +236,10 @@ function createSpiralShuriken(radius, starCount) {
             positions[i * 3 + 1] = 0;
             positions[i * 3 + 2] = 0;
 
-            const baseSize = isMobile ? 0.6 : 0.35;
+            // 💡 TAMAÑOS AUMENTADOS SIGNIFICAIVAMENTE EN MÓVIL PARA MEJOR COLOR
+            const baseSize = isMobile ? 1.35 : 0.45;
             const sizeIntensity = Math.pow(1 - t, 1.2);
-            sizes[i] = baseSize + sizeIntensity * (isMobile ? 0.6 : 0.4); 
+            sizes[i] = baseSize + sizeIntensity * (isMobile ? 1.1 : 0.5); 
 
             const mix = Math.pow(t, 0.6);
             const color = centerColor.clone().lerp(outerColor, mix);
@@ -272,8 +270,10 @@ function createSpiralShuriken(radius, starCount) {
                 vColor = color;
                 float distFromCenter = length(position);
                 float growthFactor = smoothstep(0.0, 10.0, distFromCenter);
+                
+                // Puntos con tamaño dinámico y respuesta a resolución
                 gl_PointSize = size * growthFactor * (1.0 + (1.0 - uProgress) * 2.5);
-                vAlpha = smoothstep(0.0, 12.0, distFromCenter);
+                vAlpha = smoothstep(0.0, 10.0, distFromCenter);
                 gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
             }
         `,
@@ -284,8 +284,12 @@ function createSpiralShuriken(radius, starCount) {
             void main() {
                 float dist = length(gl_PointCoord - vec2(0.5));
                 if(dist > 0.5) discard;
-                float alpha = smoothstep(0.5, 0.0, dist) * vAlpha;
-                gl_FragColor = vec4(vColor, alpha);
+                
+                // Núcleo más brillante para destacar tonos vívidos en pantallas móviles
+                float core = smoothstep(0.5, 0.0, dist);
+                float glow = pow(core, 1.2);
+                
+                gl_FragColor = vec4(vColor * 1.3, glow * vAlpha);
             }
         `,
         vertexColors: true,
@@ -329,7 +333,6 @@ function createMeteoritos() {
         
         for (let m = 0; m < itemsPerArm; m++) {
             const t = (m + 1) / (itemsPerArm + 1);
-            // 💡 Aumentado a 38 para despejar totalmente la vista del corazón
             const innerMin = 38;
             const r = innerMin + Math.pow(t, 0.75) * (radius - innerMin);
             
@@ -343,7 +346,7 @@ function createMeteoritos() {
             const flowerSprite = new THREE.Sprite(flowerMaterial.clone());
             flowerSprite.position.set(x, y, z);
             
-            const spriteScale = isMobile ? 3.8 : 3.0;
+            const spriteScale = isMobile ? 4.2 : 3.0;
             flowerSprite.scale.set(spriteScale, spriteScale, 1); 
             flowerSprite.userData.phraseIndex = meteorites.length;
             
@@ -429,7 +432,7 @@ function onMouseMove(event) {
         meteorites.forEach(m => m.mesh.scale.set(m.baseScale, m.baseScale, 1));
         
         if (intersects.length > 0) {
-            intersects[0].object.scale.set(4.8, 4.8, 1);
+            intersects[0].object.scale.set(5.2, 5.2, 1);
             document.body.style.cursor = 'pointer';
         } else {
             document.body.style.cursor = 'auto';
@@ -549,7 +552,6 @@ function animate() {
         scene.userData.backgroundStars.rotation.y += 0.0001;
     }
 
-    // Rotación y latido del corazón central grande
     if (heartMesh) {
         heartMesh.rotation.y += 0.006;
         heartMesh.rotation.x = Math.sin(Date.now() * 0.001) * 0.08;
@@ -559,7 +561,6 @@ function animate() {
         heartMesh.scale.set(currentScale, currentScale, currentScale);
     }
 
-    // Rotación sincronizada de galaxia y flores
     if (spiralGroup) {
         spiralGroup.rotation.y += 0.0012;
     }
