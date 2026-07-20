@@ -1,22 +1,23 @@
 // ===============================================
-// ARCHIVO: app.js
-// LÓGICA DE SECUENCIA Y ANIMACIÓN 3D (CON PLANETA INTERACTIVO)
+// ARCHIVO: app.js (VERSIÓN INTERACTIVA CON FLORES)
+// LÓGICA DE SECUENCIA Y ANIMACIÓN 3D (PC Y MÓVIL)
 // ===============================================
 
-// Variables principales de Three.js
 let scene, camera, renderer, controls;
-let celestialBodies = []; // Para rotación propia de los cuerpos (Sol)
+let celestialBodies = []; 
 let spiralGroup;
 let raycaster;
 let mouse = new THREE.Vector2();
-let meteorites = []; // Array de meteoritos interactivos
+let meteorites = []; // Mantenemos el nombre del array interno para compatibilidad
 let clock = new THREE.Clock();
-let previousCameraPosition = new THREE.Vector3(); // Para guardar posición anterior
-let previousCameraTarget = new THREE.Vector3(); // Para guardar target anterior
+let previousCameraPosition = new THREE.Vector3(); 
+let previousCameraTarget = new THREE.Vector3(); 
+let introMode = true;
+let universeStarted = false;
+let galaxyAppearing = false;
+let galaxyProgress = 0;
 
-const TEXT_3D_COLOR = 0xFF4500;
-
-// Frases románticas para los meteoritos
+// Frases románticas para las flores
 const romanticPhrases = [
     "Cada estrella en este espiral representa un momento contigo",
     "En la vastedad del universo, tú eres mi punto de referencia",
@@ -33,7 +34,7 @@ const romanticPhrases = [
     "En la eternidad, encontré tu nombre",
     "Giro junto a ti en este universo mágico",
     "Tu belleza eclipsa a todas las estrellas",
-    "Eres el meteorito que cambió mi órbita",
+    "Esta flor florece solo para ti en el vacío",
     "En la noche oscura, tu luz me guía",
     "Contigo, el infinito tiene fin",
     "Cada giro es un paso hacia ti",
@@ -41,30 +42,30 @@ const romanticPhrases = [
 ]; 
 
 // ===============================================
-// INICIALIZACIÓN Y ANIMACIÓN DEL UNIVERSO 3D
+// INICIALIZACIÓN DEL ENTORNO
 // ===============================================
-
 function initThreeJS() {
     // 1. ESCENA y FONDO
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x000000); // Fondo negro
+    scene.background = new THREE.Color(0x000000); 
     
-    // 2. CÁMARA - Posición inclinada desde arriba para ver bien el espiral
+    // 2. CÁMARA
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000); 
-    camera.position.set(60, 50, 60); // Inclinada desde arriba 
+    camera.position.set(60, 50, 60); 
     
     // 3. RENDERIZADOR
     renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     document.body.appendChild(renderer.domElement); 
     
-    // 4. CONTROLES DE ÓRBITA (Pantalla movible 3D)
+    // 4. CONTROLES
     controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
     controls.minDistance = 10; 
     controls.maxDistance = 150; 
-    controls.target.copy(new THREE.Vector3(0,0,0)); // Asegurarse de que el target inicial sea el centro
+    controls.target.copy(new THREE.Vector3(0,0,0));
 
     // 5. LUCES
     const ambientLight = new THREE.AmbientLight(0x404040, 2); 
@@ -73,73 +74,71 @@ function initThreeJS() {
     sunLight.position.set(10, 5, 15);
     scene.add(sunLight);
 
-    // 6. CREACIÓN DE CUERPOS CELESTES 
-    
-    // --- EL SOL ---
-    const sunParticles = createSunParticles(0, 0, 0, 15, 0xff88bb, 0xdd3366); 
-    celestialBodies.push(sunParticles); 
-    
-    // 7. AÑADIR FRASE ALREDEDOR DEL SOL 🌟
-    const sunText = "Hay millones de estrellas pero yo decidí girar alrededor de la más grande y hermosa: el sol";
-    addSimpleText(sunText, 0, 15, 0, TEXT_3D_COLOR, 1.2); 
-    
-    // --- ESPIRAL SHURIKEN DE ESTRELLAS ALREDEDOR DEL SOL ---
-    spiralGroup = createSpiralShuriken(55, 50000); // Espiral compacto con brazos cortos
-    scene.add(spiralGroup);
-    
-    // --- METEORITOS INTERACTIVOS EN EL ESPIRAL ---
-    createMeteoritos();
+    // Fondo de estrellas estables desde el inicio
+    createStarField(500);
 
-    // --- CAMPO DE ESTRELLAS ---
-    createStarField(500); // Estrellas lejanas como fondo 
+    // SOL 
+    const sunParticles = createSunParticles(0, 0, 0, 5, 0xffaa44, 0xff4500);
+    celestialBodies.push(sunParticles);
 
-    // 🌟 INICIALIZACIÓN DEL RAYCASTER 🌟
     raycaster = new THREE.Raycaster();
     
-    // Event listeners para interacción
+    // Listeners unificados (PC y Móviles)
     window.addEventListener('click', onMouseClick, false);
     window.addEventListener('mousemove', onMouseMove, false);
-    window.addEventListener('touchstart', onTouchStart, false);
-    window.addEventListener('touchmove', onTouchMove, false);
+    window.addEventListener('touchstart', onTouchStart, { passive: false });
     window.addEventListener('resize', onWindowResize, false);
 
     animate();
 }
 
+// Detonador al interactuar con el Sol
+function startUniverse() {
+    if (universeStarted) return;
+    universeStarted = true;
+    introMode = false;
+
+    const introOverlay = document.getElementById('intro-overlay');
+    if (introOverlay) introOverlay.style.display = 'none';
+
+    // Generar galaxia en el núcleo
+    spiralGroup = createSpiralShuriken(55, 40000); 
+    scene.add(spiralGroup);
+
+    galaxyAppearing = true;
+    galaxyProgress = 0;
+}
+
 // ===============================================
-// FUNCIÓN: Crea un espiral de estrellas tipo shuriken
-// ===============================================
-// FUNCIÓN: Crea un espiral de estrellas tipo galaxia con brazos curvados
+// CREACIÓN DE LA GALAXIA ESPIRAL
 // ===============================================
 function createSpiralShuriken(radius, starCount) {
     const group = new THREE.Group();
     const positions = new Float32Array(starCount * 3);
     const colors = new Float32Array(starCount * 3);
     const sizes = new Float32Array(starCount);
+    const finalPositions = new Float32Array(starCount * 3); 
     
-    const centerColor = new THREE.Color(0xdd99aa); // Rosa muy suave al inicio
-    const outerColor = new THREE.Color(0xff6699); // Rosa oscuro al final
+    const centerColor = new THREE.Color(0xdd99aa); 
+    const outerColor = new THREE.Color(0xff6699); 
     
-    const armCount = 4; // 4 brazos curvados
+    const armCount = 4; 
     const startsPerArm = Math.floor(starCount / armCount);
 
     for (let arm = 0; arm < armCount; arm++) {
-        const baseAngle = (arm / armCount) * Math.PI * 2; // Cada brazo separado 90 grados
+        const baseAngle = (arm / armCount) * Math.PI * 2;
         
         for (let j = 0; j < startsPerArm; j++) {
             const i = arm * startsPerArm + j;
             if (i >= starCount) break;
             
-            // Progresión suave desde el centro hacia afuera
             const t = j / startsPerArm;
-            const innerMin = 18; // Comienza más lejos del sol
+            const innerMin = 18; 
             const r = innerMin + Math.pow(t, 0.75) * (radius - innerMin);
             
-            // Curvatura del brazo (spiral arm logarítmico)
-            const armCurve = t * Math.PI * 1.2; // Brazos más cortos
+            const armCurve = t * Math.PI * 1.2; 
             const angle = baseAngle + armCurve;
             
-            // Variación natural pero concentrada en el brazo
             const noise = (Math.random() - 0.5) * 1.8;
             const finalRadius = r + noise * (r * 0.14);
             const finalAngle = angle + noise * 0.2;
@@ -148,15 +147,17 @@ function createSpiralShuriken(radius, starCount) {
             const y = (Math.random() - 0.5) * (radius * 0.06);
             const z = Math.sin(finalAngle) * finalRadius;
 
-            positions[i * 3] = x;
-            positions[i * 3 + 1] = y;
-            positions[i * 3 + 2] = z;
+            finalPositions[i * 3] = x;
+            finalPositions[i * 3 + 1] = y;
+            finalPositions[i * 3 + 2] = z;
 
-            // Tamaño decrece conforme avanza el brazo (más intensidad al inicio)
+            positions[i * 3] = 0;
+            positions[i * 3 + 1] = 0;
+            positions[i * 3 + 2] = 0;
+
             const sizeIntensity = Math.pow(1 - t, 1.3);
-            sizes[i] = 0.1 + sizeIntensity * 0.2; // De 0.3 al inicio a 0.1 al final
+            sizes[i] = 0.2 + sizeIntensity * 0.3; 
 
-            // Gradiente de color: Blanco brillante al inicio, rosa oscuro al final
             const mix = Math.pow(t, 0.6);
             const color = centerColor.clone().lerp(outerColor, mix);
             colors[i * 3] = color.r;
@@ -170,23 +171,35 @@ function createSpiralShuriken(radius, starCount) {
     geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
     geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
 
+    geometry.userData.finalPositions = finalPositions;
+
     const material = new THREE.ShaderMaterial({
-        uniforms: {},
+        uniforms: {
+            uProgress: { value: 0.0 }
+        },
         vertexShader: `
+            uniform float uProgress;
             attribute float size;
             varying vec3 vColor;
+            varying float vAlpha;
+            
             void main() {
                 vColor = color;
-                gl_PointSize = size;
+                float distFromCenter = length(position);
+                float growthFactor = smoothstep(0.0, 15.0, distFromCenter);
+                gl_PointSize = size * growthFactor * (1.0 + (1.0 - uProgress) * 3.0);
+                vAlpha = smoothstep(0.0, 10.0, distFromCenter);
                 gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
             }
         `,
         fragmentShader: `
             varying vec3 vColor;
+            varying float vAlpha;
+            
             void main() {
                 float dist = length(gl_PointCoord - vec2(0.5));
                 if(dist > 0.5) discard;
-                float alpha = smoothstep(0.5, 0.0, dist);
+                float alpha = smoothstep(0.5, 0.0, dist) * vAlpha;
                 gl_FragColor = vec4(vColor, alpha);
             }
         `,
@@ -202,17 +215,33 @@ function createSpiralShuriken(radius, starCount) {
     return group;
 }
 
+// ===============================================
+// 🌸 CREACIÓN DE FLORES EN ESPACIO 3D (SPRITES)
+// ===============================================
 function createMeteoritos() {
+    meteorites.forEach(m => scene.remove(m.mesh));
+    meteorites = [];
+
+    const textureLoader = new THREE.TextureLoader();
+    // Carga tu archivo local de flor.png
+    const flowerTexture = textureLoader.load('flor.png'); 
+
+    const flowerMaterial = new THREE.SpriteMaterial({
+        map: flowerTexture,
+        transparent: true,
+        blending: THREE.AdditiveBlending, 
+        depthWrite: false
+    });
+
     const armCount = 4;
-    const meteoritesPerArm = 5;
+    const itemsPerArm = 4; 
     const radius = 55;
     
     for (let arm = 0; arm < armCount; arm++) {
         const baseAngle = (arm / armCount) * Math.PI * 2;
         
-        for (let m = 0; m < meteoritesPerArm; m++) {
-            // Distribuir meteoritos a lo largo del brazo
-            const t = (m + 1) / (meteoritesPerArm + 1);
+        for (let m = 0; m < itemsPerArm; m++) {
+            const t = (m + 1) / (itemsPerArm + 1);
             const innerMin = 18;
             const r = innerMin + Math.pow(t, 0.75) * (radius - innerMin);
             
@@ -223,21 +252,17 @@ function createMeteoritos() {
             const y = (Math.random() - 0.5) * 2;
             const z = Math.sin(angle) * r;
             
-            // Crear geometría del meteorito (pequeña esfera)
-            const meteoriteGeometry = new THREE.SphereGeometry(0.8, 8, 8);
-            const meteoriteMaterial = new THREE.MeshPhongMaterial({
-                color: 0xff6600,
-                emissive: 0xff3300,
-                shininess: 100
-            });
+            // Creamos Sprites que miran siempre a la cámara de frente
+            const flowerSprite = new THREE.Sprite(flowerMaterial.clone());
+            flowerSprite.position.set(x, y, z);
             
-            const meteorite = new THREE.Mesh(meteoriteGeometry, meteoriteMaterial);
-            meteorite.position.set(x, y, z);
-            meteorite.userData.phraseIndex = meteorites.length;
+            // Tamaño base inicial de la flor (2.5 en X y Y)
+            flowerSprite.scale.set(2.5, 2.5, 1); 
+            flowerSprite.userData.phraseIndex = meteorites.length;
             
-            scene.add(meteorite);
+            scene.add(flowerSprite);
             meteorites.push({
-                mesh: meteorite,
+                mesh: flowerSprite, 
                 position: new THREE.Vector3(x, y, z),
                 phraseIndex: meteorites.length
             });
@@ -245,22 +270,45 @@ function createMeteoritos() {
     }
 }
 
+// Interacciones combinadas de clics/taps
+function checkInteractions() {
+    raycaster.setFromCamera(mouse, camera);
+    
+    if (!universeStarted && celestialBodies[0]) {
+        const sunHit = raycaster.intersectObject(celestialBodies[0]);
+        if (sunHit.length > 0) {
+            startUniverse();
+            return;
+        }
+    }
+
+    if (universeStarted && !galaxyAppearing) {
+        const flowerMeshes = meteorites.map(m => m.mesh);
+        const intersects = raycaster.intersectObjects(flowerMeshes);
+        
+        if (intersects.length > 0) {
+            const clickedFlower = intersects[0].object;
+            const phraseIndex = clickedFlower.userData.phraseIndex;
+            
+            const targetPosition = clickedFlower.position.clone();
+            animateCameraTo(targetPosition, clickedFlower);
+            showPhrase(romanticPhrases[phraseIndex % romanticPhrases.length]);
+        }
+    }
+}
+
 function onMouseClick(event) {
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-    
-    raycaster.setFromCamera(mouse, camera);
-    
-    const meteoriteMeshes = meteorites.map(m => m.mesh);
-    const intersects = raycaster.intersectObjects(meteoriteMeshes);
-    
-    if (intersects.length > 0) {
-        const clickedMeteorite = intersects[0].object;
-        const phraseIndex = clickedMeteorite.userData.phraseIndex;
-        
-        const targetPosition = clickedMeteorite.position.clone();
-        animateCameraTo(targetPosition, clickedMeteorite);
-        showPhrase(romanticPhrases[phraseIndex % romanticPhrases.length]);
+    checkInteractions();
+}
+
+function onTouchStart(event) {
+    if (event.touches.length > 0) {
+        const touch = event.touches[0];
+        mouse.x = (touch.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(touch.clientY / window.innerHeight) * 2 + 1;
+        checkInteractions();
     }
 }
 
@@ -269,74 +317,41 @@ function onMouseMove(event) {
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
     
     raycaster.setFromCamera(mouse, camera);
-    const meteoriteMeshes = meteorites.map(m => m.mesh);
-    const intersects = raycaster.intersectObjects(meteoriteMeshes);
-    
-    meteorites.forEach(m => {
-        m.mesh.scale.set(1, 1, 1);
-    });
-    
-    if (intersects.length > 0) {
-        intersects[0].object.scale.set(1.5, 1.5, 1.5);
-        document.body.style.cursor = 'pointer';
-    } else {
-        document.body.style.cursor = 'auto';
-    }
-}
 
-function onTouchStart(event) {
-    if (event.touches.length > 0) {
-        const touch = event.touches[0];
-        mouse.x = (touch.clientX / window.innerWidth) * 2 - 1;
-        mouse.y = -(touch.clientY / window.innerHeight) * 2 + 1;
+    if (!universeStarted && celestialBodies[0]) {
+        const intersects = raycaster.intersectObject(celestialBodies[0]);
+        document.body.style.cursor = intersects.length > 0 ? 'pointer' : 'auto';
+        return;
+    }
+
+    if (universeStarted && !galaxyAppearing) {
+        const flowerMeshes = meteorites.map(m => m.mesh);
+        const intersects = raycaster.intersectObjects(flowerMeshes);
         
-        raycaster.setFromCamera(mouse, camera);
-        const meteoriteMeshes = meteorites.map(m => m.mesh);
-        const intersects = raycaster.intersectObjects(meteoriteMeshes);
+        // Restablecer escala base de las flores
+        meteorites.forEach(m => m.mesh.scale.set(2.5, 2.5, 1));
         
         if (intersects.length > 0) {
-            const clickedMeteorite = intersects[0].object;
-            const phraseIndex = clickedMeteorite.userData.phraseIndex;
-            
-            const targetPosition = clickedMeteorite.position.clone();
-            animateCameraTo(targetPosition, clickedMeteorite);
-            showPhrase(romanticPhrases[phraseIndex % romanticPhrases.length]);
+            // Animación de hover: agranda suavemente la flor apuntada en PC
+            intersects[0].object.scale.set(3.5, 3.5, 1);
+            document.body.style.cursor = 'pointer';
+        } else {
+            document.body.style.cursor = 'auto';
         }
     }
 }
 
-function onTouchMove(event) {
-    if (event.touches.length > 0) {
-        const touch = event.touches[0];
-        mouse.x = (touch.clientX / window.innerWidth) * 2 - 1;
-        mouse.y = -(touch.clientY / window.innerHeight) * 2 + 1;
-        
-        raycaster.setFromCamera(mouse, camera);
-        const meteoriteMeshes = meteorites.map(m => m.mesh);
-        const intersects = raycaster.intersectObjects(meteoriteMeshes);
-        
-        meteorites.forEach(m => {
-            m.mesh.scale.set(1, 1, 1);
-        });
-        
-        if (intersects.length > 0) {
-            intersects[0].object.scale.set(1.5, 1.5, 1.5);
-        }
-    }
-}
-
-function animateCameraTo(targetPosition, meteorite) {
-    // Guardar posición actual antes de animar
+function animateCameraTo(targetPosition, element) {
     previousCameraPosition.copy(camera.position);
     previousCameraTarget.copy(controls.target);
     
     const startPosition = camera.position.clone();
     const direction = targetPosition.clone().sub(scene.position).normalize();
-    const distance = 15;
+    const distance = 18; 
     const endPosition = targetPosition.clone().add(direction.multiplyScalar(distance));
     
     let progress = 0;
-    const duration = 1000; // ms
+    const duration = 800; 
     const startTime = Date.now();
     
     function animateFrame() {
@@ -356,7 +371,6 @@ function animateCameraTo(targetPosition, meteorite) {
 }
 
 function showPhrase(phrase) {
-    // Crear o actualizar modal
     let modal = document.getElementById('phrase-modal');
     if (!modal) {
         modal = document.createElement('div');
@@ -366,40 +380,41 @@ function showPhrase(phrase) {
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.92);
             border: 2px solid #ff6699;
-            border-radius: 10px;
-            padding: 30px;
-            max-width: 600px;
+            border-radius: 12px;
+            padding: 25px;
+            width: 85%;
+            max-width: 450px;
+            box-sizing: border-box;
             text-align: center;
             z-index: 2000;
             color: #ff6699;
-            font-size: 1.5em;
-            font-family: Arial, sans-serif;
-            box-shadow: 0 0 30px rgba(255, 102, 153, 0.5);
-            animation: fadeIn 0.5s ease-in;
+            font-size: 1.2em;
+            font-family: sans-serif;
+            box-shadow: 0 0 25px rgba(255, 102, 153, 0.4);
         `;
         document.body.appendChild(modal);
     }
     
     modal.innerHTML = `
-        <p style="margin: 0 0 20px 0; line-height: 1.6;">"${phrase}"</p>
+        <p style="margin: 0 0 20px 0; line-height: 1.5; font-weight: 500;">"${phrase}"</p>
         <button id="close-modal" style="
             background: #ff6699;
             color: black;
             border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
+            padding: 12px 28px;
+            border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
-            font-size: 1em;
+            font-size: 0.95em;
+            width: 100%;
         ">Cerrar</button>
     `;
     
     modal.style.display = 'block';
     document.getElementById('close-modal').addEventListener('click', () => {
         modal.style.display = 'none';
-        // Regresar a la posición anterior
         animateCameraBack();
     });
 }
@@ -409,7 +424,7 @@ function animateCameraBack() {
     const startTarget = controls.target.clone();
     
     let progress = 0;
-    const duration = 1000; // ms
+    const duration = 800; 
     const startTime = Date.now();
     
     function animateFrame() {
@@ -428,16 +443,55 @@ function animateCameraBack() {
     animateFrame();
 }
 
+// ===============================================
+// BUCLE PRINCIPAL DE RENDERIZADO (ANIMATE)
+// ===============================================
 function animate() {
     requestAnimationFrame(animate);
     
-    const deltaTime = clock.getDelta();
+    // Rotación sutil de fondo
+    if (scene.userData.backgroundStars) {
+        scene.userData.backgroundStars.rotation.y += 0.0001;
+    }
 
-    // Animación del Sol
+    if (galaxyAppearing && spiralGroup) {
+        galaxyProgress += 0.006; 
+        
+        const stars = spiralGroup.children[0];
+        if (stars.material.uniforms.uProgress) {
+            stars.material.uniforms.uProgress.value = galaxyProgress;
+        }
+        
+        const array = stars.geometry.attributes.position.array;
+        const target = stars.geometry.userData.finalPositions;
+        
+        let reachedDestination = true;
+        for (let i = 0; i < array.length; i++) {
+            const diff = target[i] - array[i];
+            if (Math.abs(diff) > 0.01) {
+                array[i] += diff * 0.04; 
+                reachedDestination = false;
+            } else {
+                array[i] = target[i];
+            }
+        }
+        
+        stars.geometry.attributes.position.needsUpdate = true;
+        
+        if (reachedDestination || galaxyProgress >= 1) {
+            galaxyAppearing = false;
+            // Al terminar la expansión se siembran las flores PNG
+            createMeteoritos();
+            const finalFrase = document.getElementById("frase-final-2d");
+            if (finalFrase) finalFrase.style.opacity = 1;
+        }
+    }
+    
+    // Sol dinámico
     const sun = celestialBodies[0];
     if (sun) {
-        sun.rotation.y += 0.001;
-        sun.scale.setScalar(1 + Math.sin(Date.now() * 0.0005) * 0.02); 
+        sun.rotation.y += 0.002;
+        sun.scale.setScalar(1 + Math.sin(Date.now() * 0.001) * 0.02); 
     }
     
     controls.update();
@@ -448,58 +502,14 @@ function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 }
 
 // ===============================================
-// FUNCIONES DE CREACIÓN DE CUERPOS (Mantenidas)
+// GENERADORES AUXILIARES
 // ===============================================
-
-function createPinkPlanet(position, radius, coreColor, surfaceColor) {
-    const particleCount = 4000; 
-    const positions = new Float32Array(particleCount * 3);
-    const colors = new Float32Array(particleCount * 3);
-    const cCore = new THREE.Color(coreColor); 
-    const cSurface = new THREE.Color(surfaceColor); 
-
-    for (let i = 0; i < particleCount; i++) {
-        const r = radius * Math.cbrt(Math.random()); 
-        const theta = Math.random() * Math.PI * 2; 
-        const phi = Math.acos((Math.random() * 2) - 1);
-        
-        positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
-        positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
-        positions[i * 3 + 2] = r * Math.cos(phi);
-
-        let colorMixFactor = r / radius; 
-        const spotFactor = Math.abs(Math.sin(theta * 5) * Math.cos(phi * 3) * 0.3); 
-        colorMixFactor = THREE.MathUtils.clamp(colorMixFactor + spotFactor * 0.5, 0.0, 1.0);
-
-        const mixedColor = cCore.clone().lerp(cSurface, colorMixFactor);
-        
-        colors[i * 3] = mixedColor.r;
-        colors[i * 3 + 1] = mixedColor.g;
-        colors[i * 3 + 2] = mixedColor.b;
-    }
-    
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-    
-    const material = new THREE.PointsMaterial({
-        size: 0.1, 
-        vertexColors: true, 
-        blending: THREE.AdditiveBlending, 
-        transparent: true, 
-        depthWrite: false
-    });
-    
-    const pinkPlanet = new THREE.Points(geometry, material);
-    pinkPlanet.position.copy(position);
-    return pinkPlanet;
-}
-
 function createSunParticles(x, y, z, radius, color1, color2) {
-    const particleCount = 7000; 
+    const particleCount = 4500; 
     const positions = new Float32Array(particleCount * 3);
     const colors = new Float32Array(particleCount * 3);
     const c1 = new THREE.Color(color1); 
@@ -520,7 +530,7 @@ function createSunParticles(x, y, z, radius, color1, color2) {
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
     const material = new THREE.PointsMaterial({
-        size: 0.2, vertexColors: true, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false 
+        size: 0.25, vertexColors: true, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false 
     });
     const sunParticles = new THREE.Points(geometry, material);
     sunParticles.position.set(x, y, z);
@@ -528,97 +538,8 @@ function createSunParticles(x, y, z, radius, color1, color2) {
     return sunParticles; 
 }
 
-function createSaturn(position) {
-    const planetRadius = 4;
-    const planetParticleCount = 5000; 
-    const planetPositions = new Float32Array(planetParticleCount * 3);
-    const planetColors = new Float32Array(planetParticleCount * 3);
-    const colorCore = new THREE.Color(0xccaa88); 
-    const colorSurface = new THREE.Color(0xffddaa); 
-    for (let i = 0; i < planetParticleCount; i++) {
-        const r = planetRadius * Math.cbrt(Math.random()); 
-        const theta = Math.random() * Math.PI * 2; 
-        const phi = Math.acos((Math.random() * 2) - 1);
-        planetPositions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
-        planetPositions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
-        planetPositions[i * 3 + 2] = r * Math.cos(phi);
-        const mixedColor = colorCore.clone().lerp(colorSurface, r / planetRadius);
-        planetColors[i * 3] = mixedColor.r;
-        planetColors[i * 3 + 1] = mixedColor.g;
-        planetColors[i * 3 + 2] = mixedColor.b;
-    }
-    const planetGeometry = new THREE.BufferGeometry();
-    planetGeometry.setAttribute('position', new THREE.BufferAttribute(planetPositions, 3));
-    planetGeometry.setAttribute('color', new THREE.BufferAttribute(planetColors, 3));
-    const planetMaterial = new THREE.PointsMaterial({
-        size: 0.1, vertexColors: true, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false
-    });
-    const planetParticles = new THREE.Points(planetGeometry, planetMaterial);
-    planetParticles.position.copy(position);
-    
-    const ringParticleCount = 10000; 
-    const ringPositions = new Float32Array(ringParticleCount * 3);
-    const ringColors = new Float32Array(ringParticleCount * 3);
-    const innerRadius = planetRadius * 1.2; 
-    const outerRadius = planetRadius * 2.5; 
-    const ringThickness = 0.5; 
-    const colorRingInner = new THREE.Color(0x888877); 
-    const colorRingOuter = new THREE.Color(0xbb9977); 
-    for (let i = 0; i < ringParticleCount; i++) {
-        const r = innerRadius + (Math.random() * (outerRadius - innerRadius));
-        const angle = Math.random() * Math.PI * 2; 
-        ringPositions[i * 3] = r * Math.cos(angle);
-        ringPositions[i * 3 + 1] = (Math.random() - 0.5) * ringThickness;
-        ringPositions[i * 3 + 2] = r * Math.sin(angle);
-        const mixedColor = colorRingInner.clone().lerp(colorRingOuter, (r - innerRadius) / (outerRadius - innerRadius));
-        ringColors[i * 3] = mixedColor.r;
-        ringColors[i * 3 + 1] = mixedColor.g;
-        ringColors[i * 3 + 2] = mixedColor.b;
-    }
-    const ringGeometry = new THREE.BufferGeometry();
-    ringGeometry.setAttribute('position', new THREE.BufferAttribute(ringPositions, 3));
-    ringGeometry.setAttribute('color', new THREE.BufferAttribute(ringColors, 3));
-    const ringMaterial = new THREE.PointsMaterial({
-        size: 0.05, vertexColors: true, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false 
-    });
-    const ringParticles = new THREE.Points(ringGeometry, ringMaterial);
-    ringParticles.position.copy(position);
-    
-    return {body: planetParticles, rings: ringParticles};
-}
-
-function addSmallMoon(x, y, z, radius, color1, color2, message) {
-    const particleCount = 500; 
-    const positions = new Float32Array(particleCount * 3);
-    const colors = new Float32Array(particleCount * 3);
-    const c1 = new THREE.Color(color1);
-    const c2 = new THREE.Color(color2);
-    for (let i = 0; i < particleCount; i++) {
-        const r = radius * Math.cbrt(Math.random()); 
-        const theta = Math.random() * Math.PI * 2; 
-        const phi = Math.acos((Math.random() * 2) - 1);
-        positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
-        positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
-        positions[i * 3 + 2] = r * Math.cos(phi);
-        const mixedColor = c1.clone().lerp(c2, r / radius);
-        colors[i * 3] = mixedColor.r;
-        colors[i * 3 + 1] = mixedColor.g;
-        colors[i * 3 + 2] = mixedColor.b;
-    }
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-    const material = new THREE.PointsMaterial({
-        size: 0.1, vertexColors: true, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false
-    });
-    const moon = new THREE.Points(geometry, material);
-    moon.position.set(x, y, z);
-    addSimpleText(message, x + radius + 0.5, y, z, color2);
-    return moon;
-}
-
 function createStarField(radius) {
-    const starCount = 80000; 
+    const starCount = 15000; 
     const positions = new Float32Array(starCount * 3);
     const colors = new Float32Array(starCount * 3);
     const colorStar = new THREE.Color(0xffffff); 
@@ -636,57 +557,29 @@ function createStarField(radius) {
         colors[i * 3 + 1] = colorStar.g;
         colors[i * 3 + 2] = colorStar.b;
     }
+    
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    
     const material = new THREE.PointsMaterial({
-        size: 0.15, 
-        vertexColors: true, 
-        blending: THREE.AdditiveBlending, 
-        transparent: true, 
-        depthWrite: false, 
-        sizeAttenuation: true 
+        size: 0.5,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.8, 
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
     });
+    
     const starField = new THREE.Points(geometry, material);
     scene.add(starField);
+    scene.userData.backgroundStars = starField;
+    
     return starField;
 }
 
-
-function addSimpleText(text, x, y, z, color, fontSize = 0.8) {
-    if (typeof THREE.TextSprite !== 'undefined') {
-        const sprite = new THREE.TextSprite({
-            material: { color: color, fog: true },
-            fontFamily: 'Arial',
-            fontSize: fontSize, 
-            text: text,
-            alignment: 'center',
-            
-        });
-        sprite.position.set(x, y, z);
-        scene.add(sprite);
-    } else {
-        console.warn("THREE.TextSprite no está cargado. Asegúrate de incluir la librería en tu HTML.");
-    }
-}
-
-
-// ===============================================
-// LÓGICA DE INICIO (Créditos removidos)
-// ===============================================
-
 document.addEventListener('DOMContentLoaded', () => {
-    const finalFrase2D = document.getElementById('frase-final-2d'); 
-    
-    // Inicia directamente Three.js sin créditos
     initThreeJS();
     const canvas = renderer.domElement;
-    canvas.style.opacity = 1; 
-
-    // Muestra el texto después de un breve delay
-    setTimeout(() => {
-        if (finalFrase2D) {
-            finalFrase2D.style.opacity = 1; 
-        }
-    }, 1000); 
+    if(canvas) canvas.style.opacity = 1; 
 });
